@@ -65,7 +65,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>br.edu.ifce.ads.scuere.scuere/br.edu.ifce.ads.scuere.HelloApplication
+                            <mainClass>br.edu.ifce.ads.scuere.scuere/br.edu.ifce.ads.scuere.ScuereApplication
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

@@ -1,5 +1,6 @@
 package br.edu.ifce.ads.scuere;
 
+import br.edu.ifce.ads.scuere.dao.PecaDAO;
 import br.edu.ifce.ads.scuere.dao.VeiculoDAO;
 import br.edu.ifce.ads.scuere.database.ConexaoDB;
 import br.edu.ifce.ads.scuere.exceptions.UsuarioNaoEncontradoException;
@@ -16,6 +17,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class ScuereController {
 
@@ -38,6 +40,12 @@ public class ScuereController {
     @FXML private TextField campoValorMaoObra, campoPecasUsadas;
     @FXML private Label labelMensagemOficina;
 
+    // --- Aba Clientes ---
+    @FXML private TextField cadCpfCliente;
+    @FXML private TextField cadNomeCliente;
+    @FXML private TextField cadEnderecoCliente;
+    @FXML private Label labelMensagemCliente;
+
     // --- Dashboard ---
     @FXML private Label labelCaixaHoje;
     @FXML private Label labelCaixaOntem;
@@ -47,31 +55,63 @@ public class ScuereController {
 
     private GerenciadorUsuarios gerenciadorUsuarios;
     private VeiculoDAO veiculoDAO;
+    private PecaDAO pecaDAO;
     private double totalCaixaHoje = 0.0;
     private double totalDespesasMes = 0.0;
 
     public void initialize() {
         gerenciadorUsuarios = new GerenciadorUsuarios();
         veiculoDAO = new VeiculoDAO();
-        veiculoDAO.criarTabelaVeiculos();
+        pecaDAO = new PecaDAO();
 
-        // Carrega dados financeiros persistidos
-        String hoje = LocalDate.now().toString();
-        String ontem = LocalDate.now().minusDays(1).toString();
-        String mesAtual = hoje.substring(0, 7); // "2026-06"
+        veiculoDAO.criarTabelaVeiculos();
+        pecaDAO.criarTabelaPecas();
+
+        // Dados financeiros persistidos
+        String hoje    = LocalDate.now().toString();
+        String ontem   = LocalDate.now().minusDays(1).toString();
+        String mesAtual = hoje.substring(0, 7);
 
         totalCaixaHoje   = ConexaoDB.buscarTotalDia(hoje);
         totalDespesasMes = ConexaoDB.buscarDespesasMes(mesAtual);
-
         double totalOntem = ConexaoDB.buscarTotalDia(ontem);
+
         labelCaixaOntem.setText(String.format("R$ %.2f", totalOntem));
         labelDespesasMes.setText(String.format("R$ %.2f", totalDespesasMes));
 
         iniciarThreadDoCaixa();
 
+        // Categorias disponíveis
         comboTipoVenda.setItems(FXCollections.observableArrayList("Moto Nova", "Moto Usada", "Peças"));
-        comboIdItemVenda.setItems(FXCollections.observableArrayList(
-                "9BW1234 (CB500)", "P-001 (Filtro de Óleo)", "9BW9999 (Meteor 350)"));
+
+        // Listener: ao escolher a categoria, carrega itens do banco filtrados
+        comboTipoVenda.setOnAction(e -> atualizarListaItens());
+
+        // Começa sem itens no combo de seleção — o usuário escolhe a categoria primeiro
+        comboIdItemVenda.setPromptText("Selecione a categoria primeiro");
+    }
+
+    /** Consulta o banco e popula o ComboBox de itens conforme a categoria escolhida. */
+    private void atualizarListaItens() {
+        String categoria = comboTipoVenda.getValue();
+        if (categoria == null) return;
+
+        comboIdItemVenda.getItems().clear();
+        comboIdItemVenda.setValue(null);
+
+        List<String> itens = switch (categoria) {
+            case "Moto Nova"  -> veiculoDAO.listarPorTipo("MotoNova");
+            case "Moto Usada" -> veiculoDAO.listarPorTipo("MotoUsada");
+            case "Peças"      -> pecaDAO.listarTodos();
+            default -> List.of();
+        };
+
+        if (itens.isEmpty()) {
+            comboIdItemVenda.setPromptText("Nenhum item cadastrado nesta categoria");
+        } else {
+            comboIdItemVenda.setItems(FXCollections.observableArrayList(itens));
+            comboIdItemVenda.setPromptText("Selecione o item disponível");
+        }
     }
 
     @FXML
@@ -92,12 +132,11 @@ public class ScuereController {
             default -> "";
         };
 
-        // Extrai apenas o chassi/ID antes do parênteses
+        // Extrai apenas o ID/chassi antes do parênteses: "9BW1234 (CB500)" → "9BW1234"
         String idReal = idItemSelecionado.split(" ")[0];
 
         try {
             Usuario cliente = gerenciadorUsuarios.buscarPorCpf(cpf);
-            // dadosExtras[4] = km padrão para motos usadas na tela de venda
             String[] dadosExtras = {idReal, "Marca Genérica", "Modelo Genérico", "2026", "5000"};
             ItemComerciavel itemVendido = ItemFactory.criarItem(tipoFactory, idReal, 25000.0, dadosExtras);
 
@@ -132,7 +171,6 @@ public class ScuereController {
             String tipoFactory = (km == 0) ? "MotoNova" : "MotoUsada";
             String tipoAviso   = (km == 0) ? "Moto 0 KM" : "Moto Usada (" + (int) km + " km)";
 
-            // dadosExtras[4] = km para MotoUsada
             String[] dados = {
                 cadIdChassi.getText(), cadMarca.getText(), cadModelo.getText(),
                 String.valueOf(ano), String.valueOf(km)
@@ -143,7 +181,12 @@ public class ScuereController {
                 veiculoDAO.salvar(v, tipoFactory);
             }
 
-            comboIdItemVenda.getItems().add(cadIdChassi.getText() + " (" + cadModelo.getText() + ")");
+            // Se o filtro de venda estiver na mesma categoria, recarrega a lista
+            String categoriaAtual = comboTipoVenda.getValue();
+            if ((km == 0 && "Moto Nova".equals(categoriaAtual)) ||
+                (km > 0  && "Moto Usada".equals(categoriaAtual))) {
+                atualizarListaItens();
+            }
 
             mostrarSucesso(labelMensagemMoto, tipoAviso + " registrada com sucesso!");
             cadIdChassi.clear(); cadMarca.clear(); cadModelo.clear();
@@ -160,9 +203,25 @@ public class ScuereController {
             mostrarErro(labelMensagemPeca, "ID da Peça e Preço são obrigatórios.");
             return;
         }
-        mostrarSucesso(labelMensagemPeca, "Peça adicionada ao catálogo.");
-        comboIdItemVenda.getItems().add(cadIdPeca.getText() + " (Peça)");
-        cadIdPeca.clear(); cadCompatibilidade.clear(); cadPrecoPeca.clear();
+
+        try {
+            double preco = Double.parseDouble(cadPrecoPeca.getText());
+            String compatibilidade = cadCompatibilidade.getText().isEmpty()
+                    ? "Universal" : cadCompatibilidade.getText();
+
+            pecaDAO.salvar(cadIdPeca.getText(), compatibilidade, preco);
+
+            // Se o filtro estiver em "Peças", recarrega a lista imediatamente
+            if ("Peças".equals(comboTipoVenda.getValue())) {
+                atualizarListaItens();
+            }
+
+            mostrarSucesso(labelMensagemPeca, "Peça \"" + cadIdPeca.getText() + "\" adicionada ao estoque.");
+            cadIdPeca.clear(); cadCompatibilidade.clear(); cadPrecoPeca.clear();
+
+        } catch (NumberFormatException e) {
+            mostrarErro(labelMensagemPeca, "O preço deve ser um número válido.");
+        }
     }
 
     @FXML
@@ -192,6 +251,36 @@ public class ScuereController {
 
         } catch (NumberFormatException e) {
             mostrarErro(labelMensagemOficina, "O valor da mão de obra deve ser numérico.");
+        }
+    }
+
+    @FXML
+    protected void cadastrarCliente() {
+        String cpf = cadCpfCliente.getText();
+        String nome = cadNomeCliente.getText();
+        String endereco = cadEnderecoCliente.getText();
+
+        if (cpf.isEmpty() || nome.isEmpty() || endereco.isEmpty()) {
+            mostrarErro(labelMensagemCliente, "Todos os campos são obrigatórios para o cadastro.");
+            return;
+        }
+
+        try {
+            // Usa a classe Usuario que modelamos lá na Fase 2
+            Usuario novoCliente = new Usuario(cpf, nome, endereco);
+
+            // O gerenciador salva no Map (memória) e no SQLite (banco) de uma vez só
+            gerenciadorUsuarios.cadastrarUsuario(novoCliente);
+
+            mostrarSucesso(labelMensagemCliente, "Cliente " + nome + " cadastrado com sucesso!");
+
+            // Limpa os campos após salvar
+            cadCpfCliente.clear();
+            cadNomeCliente.clear();
+            cadEnderecoCliente.clear();
+
+        } catch (Exception e) {
+            mostrarErro(labelMensagemCliente, "Erro ao cadastrar cliente: " + e.getMessage());
         }
     }
 

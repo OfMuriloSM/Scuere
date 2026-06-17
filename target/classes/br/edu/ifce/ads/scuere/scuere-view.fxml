@@ -169,6 +169,22 @@
 
                 </VBox>
             </Tab>
+            <Tab text="Clientes">
+                <VBox spacing="20.0" alignment="CENTER">
+                    <padding><Insets top="30" right="50" bottom="30" left="50"/></padding>
+                    <Label text="Cadastro de Cliente" styleClass="titulo"/>
+                    <Label text="Registre novos compradores no sistema" styleClass="subtitulo"/>
+
+                    <GridPane hgap="15" vgap="15" alignment="CENTER" style="-fx-padding: 20;">
+                        <TextField fx:id="cadCpfCliente" promptText="CPF (Apenas números)" prefWidth="250" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="cadNomeCliente" promptText="Nome Completo" prefWidth="250" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <TextField fx:id="cadEnderecoCliente" promptText="Endereço Completo" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2" prefWidth="515"/>
+                    </GridPane>
+
+                    <Button text="Salvar Cliente" onAction="#cadastrarCliente" styleClass="button"/>
+                    <Label fx:id="labelMensagemCliente" text="" styleClass="mensagem"/>
+                </VBox>
+            </Tab>
 
         </TabPane>
     </center>

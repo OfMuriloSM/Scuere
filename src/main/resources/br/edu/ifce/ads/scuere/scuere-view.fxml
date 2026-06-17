@@ -3,112 +3,170 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane stylesheets="@styles.css" xmlns:fx="http://javafx.com/fxml" fx:controller="br.edu.ifce.ads.scuere.ScuereController">
+<BorderPane stylesheets="@styles.css" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="br.edu.ifce.ads.scuere.ScuereController">
 
     <top>
-        <VBox alignment="CENTER" style="-fx-background-color: #0f172a; -fx-padding: 20;">
-            <Label text="SCUERE MOTORS - GESTÃO" style="-fx-font-size: 26px; -fx-text-fill: white; -fx-font-weight: bold; -fx-letter-spacing: 2px;"/>
+        <VBox alignment="CENTER" style="-fx-background-color: #0f172a; -fx-padding: 18 30 18 30;">
+            <Label text="SCUERE MOTORS" style="-fx-font-size: 22px; -fx-text-fill: white; -fx-font-weight: bold; -fx-letter-spacing: 3px;"/>
+            <Label text="Sistema de Gestão" style="-fx-font-size: 12px; -fx-text-fill: #94a3b8;"/>
         </VBox>
     </top>
 
     <center>
         <TabPane tabClosingPolicy="UNAVAILABLE">
 
+            <!-- ===== ABA: NOVA VENDA ===== -->
             <Tab text="Nova Venda">
                 <VBox spacing="20.0" alignment="CENTER">
-                    <padding><Insets top="30" right="50" bottom="30" left="50"/></padding>
+                    <padding><Insets top="35" right="60" bottom="30" left="60"/></padding>
                     <Label text="Lançar Venda" styleClass="titulo"/>
-                    <Label text="Selecione o cliente e o veículo/peça do estoque" styleClass="subtitulo"/>
+                    <Label text="Selecione o cliente, a categoria e o item disponível no estoque." styleClass="subtitulo"/>
 
-                    <HBox spacing="15" alignment="CENTER">
-                        <TextField fx:id="campoCpfVenda" promptText="CPF do Cliente" prefWidth="250"/>
-                        <ComboBox fx:id="comboTipoVenda" promptText="Categoria" prefWidth="180"/>
-                    </HBox>
+                    <GridPane hgap="15" vgap="15" alignment="CENTER">
+                        <TextField fx:id="campoCpfVenda" promptText="CPF do Cliente"
+                                   prefWidth="280" prefHeight="40"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="comboTipoVenda" promptText="Categoria"
+                                  prefWidth="200" prefHeight="40"
+                                  GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="comboIdItemVenda" promptText="Selecione o item do estoque"
+                                  prefWidth="495" prefHeight="40"
+                                  GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                  GridPane.columnSpan="2"/>
+                    </GridPane>
 
-                    <HBox spacing="15" alignment="CENTER">
-                        <ComboBox fx:id="comboIdItemVenda" promptText="Selecione o Item Disponível" prefWidth="445"/>
-                    </HBox>
-
-                    <Button text="Confirmar Venda" onAction="#realizarVendaCompleta" styleClass="button"/>
+                    <Button text="Confirmar Venda" onAction="#realizarVendaCompleta" styleClass="button" prefWidth="220" prefHeight="42"/>
                     <Label fx:id="labelMensagemVenda" text="" styleClass="mensagem"/>
                 </VBox>
             </Tab>
 
+            <!-- ===== ABA: ENTRADA DE MOTOS ===== -->
             <Tab text="Entrada de Motos">
-                <VBox spacing="15.0" alignment="CENTER">
-                    <padding><Insets top="30" right="50" bottom="30" left="50"/></padding>
+                <VBox spacing="18.0" alignment="CENTER">
+                    <padding><Insets top="35" right="60" bottom="30" left="60"/></padding>
                     <Label text="Cadastrar Motocicleta" styleClass="titulo"/>
-                    <Label text="O sistema define Nova ou Usada baseado na quilometragem." styleClass="subtitulo"/>
+                    <Label text="Quilometragem 0 = Moto Nova  |  Qualquer KM > 0 = Moto Usada" styleClass="subtitulo"/>
 
-                    <GridPane hgap="15" vgap="15" alignment="CENTER" style="-fx-padding: 20;">
-                        <TextField fx:id="cadIdChassi" promptText="Chassi (Ex: 9BW...)" prefWidth="220" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <TextField fx:id="cadMarca" promptText="Marca (Ex: Honda)" prefWidth="220" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <TextField fx:id="cadModelo" promptText="Modelo (Ex: CB500)" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <TextField fx:id="cadAno" promptText="Ano de Fabricação" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                        <TextField fx:id="cadPreco" promptText="Preço Base (R$)" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                        <TextField fx:id="cadKm" promptText="Quilometragem (KM)" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                    <GridPane hgap="15" vgap="15" alignment="CENTER">
+                        <TextField fx:id="cadIdChassi"  promptText="Chassi (Ex: 9BW...)"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="cadMarca"     promptText="Marca (Ex: Honda)"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <TextField fx:id="cadModelo"    promptText="Modelo (Ex: CB500)"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <TextField fx:id="cadAno"       promptText="Ano de Fabricação"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <TextField fx:id="cadPreco"     promptText="Preço Base (R$)"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <TextField fx:id="cadKm"        promptText="Quilometragem (KM)"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                     </GridPane>
 
-                    <Button text="Adicionar ao Pátio" onAction="#cadastrarMoto" styleClass="button"/>
+                    <Button text="Adicionar ao Pátio" onAction="#cadastrarMoto" styleClass="button" prefWidth="220" prefHeight="42"/>
                     <Label fx:id="labelMensagemMoto" text="" styleClass="mensagem"/>
                 </VBox>
             </Tab>
 
+            <!-- ===== ABA: ENTRADA DE PEÇAS ===== -->
             <Tab text="Entrada de Peças">
-                <VBox spacing="15.0" alignment="CENTER">
-                    <padding><Insets top="30" right="50" bottom="30" left="50"/></padding>
-                    <Label text="Cadastrar Peça Avulsa" styleClass="titulo"/>
+                <VBox spacing="18.0" alignment="CENTER">
+                    <padding><Insets top="35" right="60" bottom="30" left="60"/></padding>
+                    <Label text="Cadastrar Peça" styleClass="titulo"/>
+                    <Label text="Itens cadastrados aqui ficam disponíveis para venda e serviços." styleClass="subtitulo"/>
 
-                    <GridPane hgap="15" vgap="15" alignment="CENTER" style="-fx-padding: 20;">
-                        <TextField fx:id="cadIdPeca" promptText="Código da Peça (ID)" prefWidth="220" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <TextField fx:id="cadCompatibilidade" promptText="Compatibilidade (Ex: Universal)" prefWidth="220" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <TextField fx:id="cadPrecoPeca" promptText="Preço de Custo (R$)" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2" prefWidth="455"/>
+                    <GridPane hgap="15" vgap="15" alignment="CENTER">
+                        <TextField fx:id="cadIdPeca"          promptText="Código da Peça (ID)"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="cadCompatibilidade" promptText="Compatibilidade (Ex: Universal)"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <TextField fx:id="cadPrecoPeca"       promptText="Preço de Custo (R$)"
+                                   prefWidth="495" prefHeight="40"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                   GridPane.columnSpan="2"/>
                     </GridPane>
 
-                    <Button text="Adicionar ao Estoque" onAction="#cadastrarPeca" styleClass="button"/>
+                    <Button text="Adicionar ao Estoque" onAction="#cadastrarPeca" styleClass="button" prefWidth="220" prefHeight="42"/>
                     <Label fx:id="labelMensagemPeca" text="" styleClass="mensagem"/>
                 </VBox>
             </Tab>
 
+            <!-- ===== ABA: OFICINA ===== -->
             <Tab text="Oficina / Serviço">
-                <VBox spacing="15.0" alignment="CENTER">
-                    <padding><Insets top="30" right="50" bottom="30" left="50"/></padding>
+                <VBox spacing="18.0" alignment="CENTER">
+                    <padding><Insets top="35" right="60" bottom="30" left="60"/></padding>
                     <Label text="Ordem de Serviço" styleClass="titulo"/>
+                    <Label text="Registre o serviço realizado e as peças utilizadas." styleClass="subtitulo"/>
 
-                    <TextArea fx:id="campoDescricaoServico" promptText="Descrição técnica do serviço realizado" prefRowCount="4" prefWidth="480" maxWidth="480"/>
+                    <TextArea fx:id="campoDescricaoServico"
+                              promptText="Descrição técnica do serviço realizado"
+                              prefRowCount="4" prefWidth="510" maxWidth="510"/>
 
-                    <HBox spacing="15" alignment="CENTER">
-                        <TextField fx:id="campoValorMaoObra" promptText="Mão de Obra (R$)" prefWidth="180"/>
-                        <TextField fx:id="campoPecasUsadas" promptText="IDs das Peças aplicadas (separar por vírgula)" prefWidth="285"/>
-                    </HBox>
+                    <GridPane hgap="15" vgap="15" alignment="CENTER">
+                        <TextField fx:id="campoValorMaoObra" promptText="Mão de Obra (R$)"
+                                   prefWidth="240" prefHeight="40"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <TextField fx:id="campoPecasUsadas"  promptText="Peças usadas (IDs separados por vírgula)"
+                                   prefWidth="255" prefHeight="40"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    </GridPane>
 
-                    <Button text="Emitir Nota de Serviço" onAction="#lancarServico" styleClass="button"/>
+                    <Button text="Emitir Nota de Serviço" onAction="#lancarServico" styleClass="button" prefWidth="220" prefHeight="42"/>
                     <Label fx:id="labelMensagemOficina" text="" styleClass="mensagem"/>
                 </VBox>
             </Tab>
 
+            <!-- ===== ABA: PAINEL FINANCEIRO ===== -->
             <Tab text="Painel Financeiro">
                 <VBox alignment="CENTER" spacing="30.0">
-                    <padding><Insets top="40" bottom="40"/></padding>
+                    <padding><Insets top="35" right="60" bottom="30" left="60"/></padding>
 
                     <Label text="Visão Geral do Negócio" styleClass="titulo"/>
+                    <Label text="Os valores de hoje são atualizados em tempo real e salvos no banco." styleClass="subtitulo"/>
 
-                    <HBox spacing="30" alignment="CENTER">
-                        <VBox alignment="CENTER" spacing="10" styleClass="card" prefWidth="250">
+                    <!-- Cards de resumo -->
+                    <HBox spacing="25" alignment="CENTER">
+                        <VBox alignment="CENTER" spacing="8" styleClass="card" prefWidth="230">
                             <Label text="FATURAMENTO HOJE" styleClass="card-titulo"/>
-                            <Label fx:id="labelCaixaHoje" text="R$ 0,00" styleClass="card-valor, valor-positivo"/>
+                            <Label fx:id="labelCaixaHoje" text="R$ 0,00" styleClass="card-valor valor-positivo"/>
                         </VBox>
 
-                        <VBox alignment="CENTER" spacing="10" styleClass="card" prefWidth="250">
+                        <VBox alignment="CENTER" spacing="8" styleClass="card" prefWidth="230">
                             <Label text="FATURAMENTO ONTEM" styleClass="card-titulo"/>
-                            <Label text="R$ 8.450,00" styleClass="card-valor, valor-neutro"/>
+                            <Label fx:id="labelCaixaOntem" text="R$ 0,00" styleClass="card-valor valor-neutro"/>
                         </VBox>
 
-                        <VBox alignment="CENTER" spacing="10" styleClass="card" prefWidth="250">
-                            <Label text="DESPESAS (MÊS)" styleClass="card-titulo"/>
-                            <Label text="R$ 3.200,00" styleClass="card-valor, valor-alerta"/>
+                        <VBox alignment="CENTER" spacing="8" styleClass="card" prefWidth="230">
+                            <Label text="DESPESAS DO MÊS" styleClass="card-titulo"/>
+                            <Label fx:id="labelDespesasMes" text="R$ 0,00" styleClass="card-valor valor-alerta"/>
                         </VBox>
                     </HBox>
+
+                    <!-- Separador -->
+                    <Separator prefWidth="700"/>
+
+                    <!-- Lançar despesa -->
+                    <VBox spacing="12" alignment="CENTER">
+                        <Label text="Registrar Despesa" styleClass="subtitulo"/>
+                        <HBox spacing="12" alignment="CENTER">
+                            <TextField fx:id="campoDespesa"      promptText="Descrição (Ex: Aluguel)"
+                                       prefWidth="270" prefHeight="40"/>
+                            <TextField fx:id="campoValorDespesa" promptText="Valor (R$)"
+                                       prefWidth="160" prefHeight="40"/>
+                            <Button text="Lançar Despesa" onAction="#registrarDespesa"
+                                    styleClass="button-alerta" prefHeight="40"/>
+                        </HBox>
+                        <Label fx:id="labelMensagemFinanceiro" text="" styleClass="mensagem"/>
+                    </VBox>
+
                 </VBox>
             </Tab>
 

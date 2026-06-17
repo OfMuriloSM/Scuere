@@ -1,6 +1,7 @@
 package br.edu.ifce.ads.scuere;
 
 import br.edu.ifce.ads.scuere.dao.VeiculoDAO;
+import br.edu.ifce.ads.scuere.database.ConexaoDB;
 import br.edu.ifce.ads.scuere.exceptions.UsuarioNaoEncontradoException;
 import br.edu.ifce.ads.scuere.factory.ItemFactory;
 import br.edu.ifce.ads.scuere.model.ItemComerciavel;
@@ -14,11 +15,13 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import java.time.LocalDate;
+
 public class ScuereController {
 
     // --- Aba Venda ---
     @FXML private TextField campoCpfVenda;
-    @FXML private ComboBox<String> comboIdItemVenda; // Agora é ComboBox
+    @FXML private ComboBox<String> comboIdItemVenda;
     @FXML private ComboBox<String> comboTipoVenda;
     @FXML private Label labelMensagemVenda;
 
@@ -37,23 +40,38 @@ public class ScuereController {
 
     // --- Dashboard ---
     @FXML private Label labelCaixaHoje;
+    @FXML private Label labelCaixaOntem;
+    @FXML private Label labelDespesasMes;
+    @FXML private TextField campoDespesa, campoValorDespesa;
+    @FXML private Label labelMensagemFinanceiro;
 
     private GerenciadorUsuarios gerenciadorUsuarios;
     private VeiculoDAO veiculoDAO;
     private double totalCaixaHoje = 0.0;
+    private double totalDespesasMes = 0.0;
 
     public void initialize() {
         gerenciadorUsuarios = new GerenciadorUsuarios();
         veiculoDAO = new VeiculoDAO();
         veiculoDAO.criarTabelaVeiculos();
 
+        // Carrega dados financeiros persistidos
+        String hoje = LocalDate.now().toString();
+        String ontem = LocalDate.now().minusDays(1).toString();
+        String mesAtual = hoje.substring(0, 7); // "2026-06"
+
+        totalCaixaHoje   = ConexaoDB.buscarTotalDia(hoje);
+        totalDespesasMes = ConexaoDB.buscarDespesasMes(mesAtual);
+
+        double totalOntem = ConexaoDB.buscarTotalDia(ontem);
+        labelCaixaOntem.setText(String.format("R$ %.2f", totalOntem));
+        labelDespesasMes.setText(String.format("R$ %.2f", totalDespesasMes));
+
         iniciarThreadDoCaixa();
 
-        // Nomes amigáveis para o usuário na tela
         comboTipoVenda.setItems(FXCollections.observableArrayList("Moto Nova", "Moto Usada", "Peças"));
-
-        // Simulando itens no pátio para poderem ser selecionados na venda
-        comboIdItemVenda.setItems(FXCollections.observableArrayList("9BW1234 (CB500)", "P-001 (Filtro de Óleo)", "9BW9999 (Meteor 350)"));
+        comboIdItemVenda.setItems(FXCollections.observableArrayList(
+                "9BW1234 (CB500)", "P-001 (Filtro de Óleo)", "9BW9999 (Meteor 350)"));
     }
 
     @FXML
@@ -67,33 +85,35 @@ public class ScuereController {
             return;
         }
 
-        // Converte o nome amigável para o código que a Factory entende
         String tipoFactory = switch (tipoUI) {
-            case "Moto Nova" -> "MotoNova";
+            case "Moto Nova"  -> "MotoNova";
             case "Moto Usada" -> "MotoUsada";
-            case "Peças" -> "Peca";
+            case "Peças"      -> "Peca";
             default -> "";
         };
 
-        // Pega apenas o ID antes do parênteses (Ex: "9BW1234 (CB500)" -> "9BW1234")
+        // Extrai apenas o chassi/ID antes do parênteses
         String idReal = idItemSelecionado.split(" ")[0];
 
         try {
             Usuario cliente = gerenciadorUsuarios.buscarPorCpf(cpf);
-            String[] dadosExtras = {idReal, "Marca Genérica", "Modelo Genérico", "2026"};
+            // dadosExtras[4] = km padrão para motos usadas na tela de venda
+            String[] dadosExtras = {idReal, "Marca Genérica", "Modelo Genérico", "2026", "5000"};
             ItemComerciavel itemVendido = ItemFactory.criarItem(tipoFactory, idReal, 25000.0, dadosExtras);
 
             double valorFinal = itemVendido.calcularValorFinal();
             totalCaixaHoje += valorFinal;
+            ConexaoDB.salvarTotalDia(LocalDate.now().toString(), totalCaixaHoje);
 
-            mostrarSucesso(labelMensagemVenda, "Venda aprovada! Valor: R$ " + String.format("%.2f", valorFinal));
+            mostrarSucesso(labelMensagemVenda,
+                    "Venda aprovada para " + cliente.getNome() + "! Valor: R$ " + String.format("%.2f", valorFinal));
             campoCpfVenda.clear();
             comboIdItemVenda.setValue(null);
 
         } catch (UsuarioNaoEncontradoException e) {
             mostrarErro(labelMensagemVenda, e.getMessage());
         } catch (Exception e) {
-            mostrarErro(labelMensagemVenda, "Erro na venda: Verifique se a classe " + tipoFactory + " existe.");
+            mostrarErro(labelMensagemVenda, "Erro na venda: " + e.getMessage());
         }
     }
 
@@ -106,25 +126,26 @@ public class ScuereController {
 
         try {
             double preco = Double.parseDouble(cadPreco.getText());
-            double km = Double.parseDouble(cadKm.getText());
+            double km    = Double.parseDouble(cadKm.getText());
             int ano = cadAno.getText().isEmpty() ? 2026 : Integer.parseInt(cadAno.getText());
 
-            // Lógica Inteligente (Requisito 3 do seu pedido): Define se é nova ou usada pelo KM
             String tipoFactory = (km == 0) ? "MotoNova" : "MotoUsada";
-            String tipoAviso = (km == 0) ? "Moto 0KM" : "Moto Usada (" + km + " km)";
+            String tipoAviso   = (km == 0) ? "Moto 0 KM" : "Moto Usada (" + (int) km + " km)";
 
-            String[] dados = {cadIdChassi.getText(), cadMarca.getText(), cadModelo.getText(), String.valueOf(ano)};
+            // dadosExtras[4] = km para MotoUsada
+            String[] dados = {
+                cadIdChassi.getText(), cadMarca.getText(), cadModelo.getText(),
+                String.valueOf(ano), String.valueOf(km)
+            };
             ItemComerciavel novoItem = ItemFactory.criarItem(tipoFactory, cadIdChassi.getText(), preco, dados);
 
-            if (novoItem instanceof Veiculo) {
-                veiculoDAO.salvar((Veiculo) novoItem, tipoFactory);
+            if (novoItem instanceof Veiculo v) {
+                veiculoDAO.salvar(v, tipoFactory);
             }
 
-            // Adiciona o chassi salvo no ComboBox da aba de Vendas para ficar dinâmico
             comboIdItemVenda.getItems().add(cadIdChassi.getText() + " (" + cadModelo.getText() + ")");
 
             mostrarSucesso(labelMensagemMoto, tipoAviso + " registrada com sucesso!");
-
             cadIdChassi.clear(); cadMarca.clear(); cadModelo.clear();
             cadAno.clear(); cadPreco.clear(); cadKm.clear();
 
@@ -156,20 +177,44 @@ public class ScuereController {
             ServicoOficina servico = new ServicoOficina(campoDescricaoServico.getText(), maoDeObra);
 
             if (!campoPecasUsadas.getText().isEmpty()) {
-                String[] pecasArray = campoPecasUsadas.getText().split(",");
-                for (String p : pecasArray) {
+                for (String p : campoPecasUsadas.getText().split(",")) {
                     servico.adicionarPeca(new Peca(p.trim(), 100.0, "Genérica"));
                 }
             }
 
-            double valorTotalServico = servico.calcularValorTotal();
-            totalCaixaHoje += valorTotalServico;
+            double valorTotal = servico.calcularValorTotal();
+            totalCaixaHoje += valorTotal;
+            ConexaoDB.salvarTotalDia(LocalDate.now().toString(), totalCaixaHoje);
 
-            mostrarSucesso(labelMensagemOficina, "Nota Fiscal Gerada! Total: R$ " + String.format("%.2f", valorTotalServico));
+            mostrarSucesso(labelMensagemOficina,
+                    "Nota Fiscal Gerada! Total: R$ " + String.format("%.2f", valorTotal));
             campoDescricaoServico.clear(); campoValorMaoObra.clear(); campoPecasUsadas.clear();
 
         } catch (NumberFormatException e) {
             mostrarErro(labelMensagemOficina, "O valor da mão de obra deve ser numérico.");
+        }
+    }
+
+    @FXML
+    protected void registrarDespesa() {
+        String descricao = campoDespesa.getText().trim();
+        String valorStr  = campoValorDespesa.getText().trim();
+
+        if (descricao.isEmpty() || valorStr.isEmpty()) {
+            mostrarErro(labelMensagemFinanceiro, "Preencha a descrição e o valor da despesa.");
+            return;
+        }
+
+        try {
+            double valor = Double.parseDouble(valorStr);
+            ConexaoDB.salvarDespesa(LocalDate.now().toString(), descricao, valor);
+            totalDespesasMes += valor;
+            labelDespesasMes.setText(String.format("R$ %.2f", totalDespesasMes));
+            mostrarAlerta(labelMensagemFinanceiro,
+                    "Despesa de R$ " + String.format("%.2f", valor) + " registrada.");
+            campoDespesa.clear(); campoValorDespesa.clear();
+        } catch (NumberFormatException e) {
+            mostrarErro(labelMensagemFinanceiro, "O valor deve ser numérico.");
         }
     }
 
@@ -178,9 +223,10 @@ public class ScuereController {
             while (true) {
                 try {
                     Thread.sleep(1500);
-                    Platform.runLater(() -> {
-                        labelCaixaHoje.setText(String.format("R$ %.2f", totalCaixaHoje));
-                    });
+                    final double snapshot = totalCaixaHoje;
+                    Platform.runLater(() ->
+                        labelCaixaHoje.setText(String.format("R$ %.2f", snapshot))
+                    );
                 } catch (InterruptedException e) {
                     break;
                 }
@@ -192,11 +238,16 @@ public class ScuereController {
 
     private void mostrarSucesso(Label label, String mensagem) {
         label.setText(mensagem);
-        label.setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;"); // Verde moderno
+        label.setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;");
     }
 
     private void mostrarErro(Label label, String mensagem) {
         label.setText(mensagem);
-        label.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;"); // Vermelho moderno
+        label.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
+    }
+
+    private void mostrarAlerta(Label label, String mensagem) {
+        label.setText(mensagem);
+        label.setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: bold;");
     }
 }

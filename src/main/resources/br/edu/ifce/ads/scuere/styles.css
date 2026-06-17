@@ -1,89 +1,110 @@
 .root {
-    -fx-background-color: #f0f2f5;
+    -fx-background-color: #f1f5f9;
     -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
-/* Cabeçalho e Abas */
+/* ---- Header / Abas ---- */
 .tab-pane .tab-header-area .tab-header-background {
     -fx-background-color: #1e293b;
 }
 .tab-pane .tab {
     -fx-background-color: transparent;
-    -fx-padding: 5 15 5 15;
+    -fx-padding: 8 18 8 18;
 }
 .tab-pane .tab:selected {
-    -fx-background-color: #f0f2f5;
-    -fx-background-radius: 5 5 0 0;
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 6 6 0 0;
 }
 .tab .tab-label {
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-}
-.tab:selected .tab-label {
-    -fx-text-fill: #1e293b;
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
 }
+.tab:selected .tab-label {
+    -fx-text-fill: #0f172a;
+}
 
-/* Textos e Títulos */
+/* ---- Títulos ---- */
 .titulo {
-    -fx-font-size: 24px;
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
     -fx-text-fill: #0f172a;
 }
 .subtitulo {
-    -fx-font-size: 16px;
+    -fx-font-size: 13px;
     -fx-text-fill: #64748b;
 }
 
-/* Entradas de Dados (Inputs) */
+/* ---- Inputs ---- */
 .text-field, .combo-box, .text-area {
     -fx-background-color: white;
     -fx-border-color: #cbd5e1;
-    -fx-border-radius: 6px;
-    -fx-background-radius: 6px;
-    -fx-padding: 8px 12px;
-    -fx-font-size: 14px;
+    -fx-border-radius: 7px;
+    -fx-background-radius: 7px;
+    -fx-padding: 8 12 8 12;
+    -fx-font-size: 13px;
 }
-.text-field:focused, .combo-box:focused, .text-area:focused {
+.text-field:focused, .combo-box:showing, .text-area:focused {
     -fx-border-color: #3b82f6;
     -fx-border-width: 2px;
 }
 
-/* Botões */
+/* ---- Botão primário ---- */
 .button {
     -fx-background-color: #3b82f6;
     -fx-text-fill: white;
     -fx-font-weight: bold;
-    -fx-background-radius: 6px;
-    -fx-padding: 10px 25px;
+    -fx-background-radius: 7px;
+    -fx-padding: 10 28 10 28;
     -fx-cursor: hand;
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
 }
 .button:hover {
     -fx-background-color: #2563eb;
 }
 
-/* Cartões do Dashboard */
+/* ---- Botão alerta (despesas) ---- */
+.button-alerta {
+    -fx-background-color: #f59e0b;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 7px;
+    -fx-padding: 10 22 10 22;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+}
+.button-alerta:hover {
+    -fx-background-color: #d97706;
+}
+
+/* ---- Cards do Dashboard ---- */
 .card {
     -fx-background-color: white;
-    -fx-background-radius: 12px;
-    -fx-padding: 25px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);
+    -fx-background-radius: 14px;
+    -fx-padding: 28 24 28 24;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 16, 0, 0, 6);
 }
 .card-titulo {
-    -fx-font-size: 15px;
-    -fx-text-fill: #64748b;
+    -fx-font-size: 11px;
+    -fx-text-fill: #94a3b8;
     -fx-font-weight: bold;
+    -fx-letter-spacing: 1px;
 }
 .card-valor {
-    -fx-font-size: 32px;
+    -fx-font-size: 28px;
     -fx-font-weight: bold;
 }
 .valor-positivo { -fx-text-fill: #10b981; }
-.valor-neutro { -fx-text-fill: #3b82f6; }
-.valor-alerta { -fx-text-fill: #f59e0b; }
+.valor-neutro   { -fx-text-fill: #3b82f6; }
+.valor-alerta   { -fx-text-fill: #f59e0b; }
 
+/* ---- Mensagens de feedback ---- */
 .mensagem {
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
+}
+
+/* ---- Separador ---- */
+.separator {
+    -fx-background-color: #e2e8f0;
 }
